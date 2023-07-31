@@ -114,8 +114,7 @@ If you are interested in running full parameter fine-tuning without making use o
 
 ```bash
 
-torchrun --nnodes 1 --nproc_per_node 8  llama_finetuning.py --enable_fsdp --model_name /patht_of_model_folder/7B --dist_checkpoint_root_folder model_checkpoints --dist_checkpoint_folder fine-tuned
-
+torchrun --nnodes 1 --nproc_per_node 8  llama_finetuning.py --enable_fsdp --model_name NousResearch/Llama-2-13b-chat-hf --dist_checkpoint_root_folder model_checkpoints --dist_checkpoint_folder fine-tuned
 ```
 
 ### Multi GPU Multi Node:
