@@ -11,7 +11,13 @@ class samsum_dataset:
     test_split: str = "validation"
     input_length: int = 2048
     
-    
+@dataclass
+class ablation_dataset:
+    dataset: str =  "ablation_dataset"
+    train_split: str = "train"
+    test_split: str = "test"
+    input_length: int = 4096
+
 @dataclass
 class grammar_dataset:
     dataset: str = "grammar_dataset"

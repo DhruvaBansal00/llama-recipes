@@ -6,7 +6,7 @@ from itertools import chain
 from torch.utils.data import Dataset
 
 class Concatenator(object):
-    def __init__(self, chunk_size=2048):
+    def __init__(self, chunk_size=4096):
         self.chunk_size=chunk_size
         self.residual = {"input_ids": [], "attention_mask": []}
         

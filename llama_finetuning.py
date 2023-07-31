@@ -81,6 +81,12 @@ def main(**kwargs):
         local_rank = int(os.environ["LOCAL_RANK"])
         rank = int(os.environ["RANK"])
         world_size = int(os.environ["WORLD_SIZE"])
+    
+    if not train_config.enable_fsdp or rank == 0:
+        print("===================== TRAIN CONFIG =====================")
+        print('\n'.join("%s: %s" % item for item in vars(train_config).items() if not item[0].startswith("_")))
+        print("===================== FSDP CONFIG =====================")
+        print('\n'.join("%s: %s" % item for item in vars(fsdp_config).items() if not item[0].startswith("_")))
 
     if torch.distributed.is_initialized():
         torch.cuda.set_device(rank)
@@ -95,6 +101,15 @@ def main(**kwargs):
         load_in_8bit=True if train_config.quantization else None,
         device_map="auto" if train_config.quantization else None,
     )
+    if torch.cuda.get_device_capability()[0] >= 8:
+        from utils.llama_patch import replace_attn_with_flash_attn
+        print("Using flash attention")
+        replace_attn_with_flash_attn()
+        use_flash_attention = True
+
+    if use_flash_attention:
+        from utils.llama_patch import forward
+        assert model.model.layers[0].self_attn.forward.__doc__ == forward.__doc__, "Model is not using flash attention"
     
     print_model_size(model, train_config, rank if train_config.enable_fsdp else 0)
     
@@ -142,6 +157,9 @@ def main(**kwargs):
         model.to("cuda")
 
     dataset_config = generate_dataset_config(train_config, kwargs)
+    if not train_config.enable_fsdp or rank == 0:
+        print("===================== DATASET CONFIG =====================")
+        print('\n'.join("%s: %s" % item for item in vars(dataset_config).items() if not item[0].startswith("_")))
     
      # Load and preprocess the dataset for training and validation
     dataset_train = get_preprocessed_dataset(
